@@ -4,14 +4,14 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <dirent.h>
+//#include <dirent.h>
 #include "portability.h"
 #ifdef _WIN32
 	#define dlclose FreeLibrary
 	#define dlsym GetProcAddress
 	#define dlerror() "Failed"
 	#define dlopen(lib,ig) LoadLibrary(lib)
-	#define MM_API __attribute__((dllexport))
+	#define MM_API __declspec(dllexport)
 #else
 	#include <dlfcn.h>
 	#define MM_API __attribute__((visibility ("default")))

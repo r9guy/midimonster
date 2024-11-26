@@ -2,12 +2,12 @@
 #include <signal.h>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
+//#include <unistd.h>
 #ifndef _WIN32
 	#include <sys/select.h>
 	#define MM_API __attribute__((visibility ("default")))
 #else
-	#define MM_API __attribute__((dllexport))
+	#define MM_API __declspec(dllexport)
 #endif
 
 #define BACKEND_NAME "core/rt"

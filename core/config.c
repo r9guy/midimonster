@@ -1,11 +1,14 @@
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
+#include <stddef.h>
 #include <errno.h>
 #ifndef _WIN32
+	#include <unistd.h>
 	#include <limits.h>
 	#define MM_API __attribute__((visibility ("default")))
 #else
+	#include<direct.h>
+	#define PATH_MAX        4096
 	#define MM_API __attribute__((dllexport))
 #endif
 
@@ -35,7 +38,7 @@ static config_override* overrides = NULL;
 #ifdef _WIN32
 #define GETLINE_BUFFER 4096
 
-static ssize_t getline(char** line, size_t* alloc, FILE* stream){
+static size_t getline(char** line, size_t* alloc, FILE* stream){
 	size_t bytes_read = 0;
 	char c;
 	//sanity checks
@@ -89,7 +92,7 @@ static ssize_t getline(char** line, size_t* alloc, FILE* stream){
 #endif
 
 static char* config_trim_line(char* in){
-	ssize_t n;
+	size_t n;
 	//trim front
 	for(; *in && !isgraph(*in); in++){
 	}
@@ -219,7 +222,7 @@ static int config_glob_scan(instance* inst, channel_spec* spec){
 	return 0;
 }
 
-static ssize_t config_glob_resolve_range(char* spec, size_t length, channel_glob* glob, uint64_t n){
+static size_t config_glob_resolve_range(char* spec, size_t length, channel_glob* glob, uint64_t n){
 	uint64_t current_value = glob->limits.u64[0] + (n % glob->values);
 	//if counting down
 	if(glob->limits.u64[0] > glob->limits.u64[1]){
@@ -230,7 +233,7 @@ static ssize_t config_glob_resolve_range(char* spec, size_t length, channel_glob
 	return snprintf(spec, length, "%" PRIu64, current_value);
 }
 
-static ssize_t config_glob_resolve_list(char* spec, size_t length, channel_glob* glob, uint64_t n){
+static size_t config_glob_resolve_list(char* spec, size_t length, channel_glob* glob, uint64_t n){
 	uint64_t current_replacement = 0;
 	size_t replacement_length = 0;
 	char* source = spec + 1;
@@ -255,9 +258,9 @@ static ssize_t config_glob_resolve_list(char* spec, size_t length, channel_glob*
 
 static channel* config_glob_resolve(instance* inst, channel_spec* spec, uint64_t n, uint8_t map_direction){
 	size_t glob = 0, glob_length;
-	ssize_t bytes = 0;
+	size_t bytes = 0;
 	channel* result = NULL;
-	char* resolved_spec = strdup(spec->spec);
+	char* resolved_spec = _strdup(spec->spec);
 
 	if(!resolved_spec){
 		LOG("Failed to allocate memory");
@@ -311,7 +314,7 @@ bail:
 
 static int config_map(char* to_raw, char* from_raw){
 	//create a copy because the original pointer may be used multiple times
-	char* to = strdup(to_raw), *from = strdup(from_raw);
+	char* to = _strdup(to_raw), *from = _strdup(from_raw);
 	channel_spec spec_to = {
 		.spec = to
 	}, spec_from = {
@@ -483,7 +486,7 @@ static int config_line(char* line){
 				return 1;
 			}
 
-			current_instance->name = strdup(separator);
+			current_instance->name = _strdup(separator);
 			current_instance->backend = current_backend;
 			LOGPF("Created %s instance %s", line, separator);
 
@@ -573,12 +576,12 @@ static int config_line(char* line){
 int config_read(char* cfg_filepath){
 	int rv = 1;
 	size_t line_alloc = 0;
-	ssize_t status;
+	size_t status;
 	FILE* source = NULL;
 	char* line_raw = NULL;
 
 	//create heap copy of file name because original might be in readonly memory
-	char* source_dir = strdup(cfg_filepath), *source_file = NULL, original_dir[PATH_MAX * 2] = "";
+	char* source_dir = _strdup(cfg_filepath), *source_file = NULL, original_dir[PATH_MAX * 2] = "";
 	#ifdef _WIN32
 	char path_separator = '\\';
 	#else
@@ -596,7 +599,7 @@ int config_read(char* cfg_filepath){
 		*source_file = 0;
 		source_file++;
 
-		if(!getcwd(original_dir, sizeof(original_dir))){
+		if(!_getcwd(original_dir, sizeof(original_dir))){
 			LOGPF("Failed to read current working directory: %s", strerror(errno));
 			goto bail;
 		}

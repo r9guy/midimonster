@@ -41,7 +41,7 @@
 #define clamp(val,max,min) (((val) > (max)) ? (max) : (((val) < (min)) ? (min) : (val)))
 
 /* Log function prototype - do not use directly. Use the LOG/LOGPF/DBGPF macros below instead */
-MM_API __attribute__((format(printf, 3, 4))) int log_printf(int level, char* module, char* fmt, ...);
+MM_API int log_printf(int level, char* module, char* fmt, ...);
 
 /* Debug messages only compile in when DEBUG is set */
 #ifdef DEBUG
@@ -152,7 +152,7 @@ typedef uint32_t (*mmbackend_interval)();
 typedef int (*mmbackend_shutdown)(size_t ninstances, struct _backend_instance** inst);
 
 /* Bit masks for the `flags` parameter to mmbackend_parse_channel */
-typedef enum {
+typedef enum _mmbe_channel_flags{
 	mmchannel_input = 0x1,
 	mmchannel_output = 0x2
 } mmbe_channel_flags;

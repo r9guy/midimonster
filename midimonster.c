@@ -4,7 +4,7 @@
 #ifndef _WIN32
 	#define MM_API __attribute__((visibility("default")))
 #else
-	#define MM_API __attribute__((dllexport))
+	#define MM_API __declspec(dllexport)
 #endif
 
 #define BACKEND_NAME "cli"
